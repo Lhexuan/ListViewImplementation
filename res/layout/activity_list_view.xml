@@ -8,9 +8,13 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".ListViewActivity" >
 
-    <TextView
+    <ListView
+        android:id="@+id/lstView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="#C0C0C0" >
+    </ListView>
 
 </RelativeLayout>
