@@ -43,7 +43,8 @@ public class ImageDownloadManager {
 				iv.setImageBitmap(getBitmapFromMemoryCache(imageUrl));
 			else {
 				ImageDownloader imgDownloader = new ImageDownloader(iv);
-				imgDownloader.execute(imageUrl);
+				imgDownloader.executeOnExecutor(
+						ImageDownloader.THREAD_POOL_EXECUTOR, imageUrl);
 			}
 		}
 	}
