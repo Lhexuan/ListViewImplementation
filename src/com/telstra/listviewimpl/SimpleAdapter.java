@@ -17,12 +17,20 @@ public class SimpleAdapter extends ArrayAdapter<FeedElementInfo> {
 
 	ArrayList<FeedElementInfo> mListFeedInfo;
 	Activity mActivityContext;
+	ImageDownloadManager mImgDwnldMgr = ImageDownloadManager.getInstance();
 
-	// Overloaded constructor
 	public SimpleAdapter(Context context, ArrayList<FeedElementInfo> lstFeedInfo) {
 		super(context, R.layout.list_row_layout, lstFeedInfo);
 		mActivityContext = (Activity) context;
 		mListFeedInfo = lstFeedInfo;
+	}
+
+	// Implemented Holder pattern to enhance the performance as inflatation and
+	// using findViewById are expensive calls.
+	public class ViewHolder {
+		TextView tvTitle;
+		TextView tvDesc;
+		ImageView ivIcon;
 	}
 
 	/**
@@ -37,22 +45,35 @@ public class SimpleAdapter extends ArrayAdapter<FeedElementInfo> {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView = convertView;
+		ViewHolder holder;
 
 		if (rowView == null) {
 			LayoutInflater inflater = (LayoutInflater) mActivityContext
 					.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 			rowView = inflater.inflate(R.layout.list_row_layout, null);
-		}
+			holder = new ViewHolder();
+			holder.tvTitle = (TextView) rowView.findViewById(R.id.title);
+			holder.tvDesc = (TextView) rowView.findViewById(R.id.desc);
+			holder.ivIcon = (ImageView) rowView.findViewById(R.id.img);
 
-		TextView tvTitle = (TextView) rowView.findViewById(R.id.title);
-		TextView tvDesc = (TextView) rowView.findViewById(R.id.desc);
-		ImageView ivImage = (ImageView) rowView.findViewById(R.id.img);
+			rowView.setTag(holder);
+		} else
+			holder = (ViewHolder) rowView.getTag();
 
 		FeedElementInfo feedInfo = mListFeedInfo.get(position);
+		if (feedInfo != null) {
+			holder.tvTitle.setText((feedInfo.mTitle));
+			holder.tvDesc.setText(feedInfo.mDescription);
 
-		tvTitle.setText((feedInfo.mTitle));
-		tvDesc.setText(feedInfo.mDescription);
-		ivImage.setImageResource(R.drawable.ic_launcher);
+			if (holder.ivIcon.getTag() != null)
+				if (!((String) holder.ivIcon.getTag()).equals(feedInfo.mImgURL)) {
+					holder.ivIcon.setImageDrawable(null);
+				}
+			holder.ivIcon.setTag(feedInfo.mImgURL);
+
+			mImgDwnldMgr.drawImage(feedInfo.mImgURL, holder.ivIcon);
+
+		}
 
 		return rowView;
 	}
