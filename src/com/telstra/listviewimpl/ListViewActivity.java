@@ -2,13 +2,29 @@ package com.telstra.listviewimpl;
 
 import java.util.ArrayList;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class ListViewActivity extends Activity {
+	static final String LOGCAT_TAG = "DemoActivity";
 	private ArrayList<FeedElementInfo> mListFeed = new ArrayList<FeedElementInfo>();
+	SimpleAdapter mAdapter = null;
 	final static String BLANK_STRING = "";
 
 	@Override
@@ -16,11 +32,11 @@ public class ListViewActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_list_view);
 
-		getFeedInfoList(null);
+		getFeedInfoList(this.getResources().getString(R.string.dropbox_url));
 
 		ListView lstView = (ListView) findViewById(R.id.lstView);
-		SimpleAdapter adapter = new SimpleAdapter(this, mListFeed);
-		lstView.setAdapter(adapter);
+		mAdapter = new SimpleAdapter(this, mListFeed);
+		lstView.setAdapter(mAdapter);
 	}
 
 	@Override
@@ -30,26 +46,119 @@ public class ListViewActivity extends Activity {
 		return true;
 	}
 
+	/**
+	 * This method calls asynchronous function to download and parse the json
+	 * method
+	 * <p>
+	 * This method always returns immediately
+	 * 
+	 * @param url
+	 *            an String URL giving the base location of the json file
+	 * @return void
+	 */
 	public void getFeedInfoList(String url) {
 
-		// Sample list
-		mListFeed
-				.add(new FeedElementInfo(
-						"Sample Title Test....",
-						"kjfhsdefkjhsdfsd sdkhfdskjfhsdkfhdsfhsfjsf g sdfjgdsfdsg fdjs fgsdfg dsf hgsdjffjksfjsgfsd fFGSDJFKgdSfjf sfds dshgsdghdfghf",
-						"dsadadsad"));
+		new DownloaderTask(mListFeed).execute(url);
 
-		mListFeed
-				.add(new FeedElementInfo(
-						"ssadsadsadsad",
-						"kjfhsdefkjhsdfsd sdkhfdskjfhsdkfhdsfhsfjsf g sdfjgdsfdsg fdjs fgsdfg dsf hgsdjffjksfjsgfsd fFGSDJFKgdSfjf sfds dshgsdghdfghf",
-						"dsadadsad"));
-		mListFeed
-				.add(new FeedElementInfo(
-						"ssadsadsadsad",
-						"kjfhsdefkjhsdfsd sdkhfdskjfhsdkfhdsfhsfjsf g sdfjgdsfdsg fdjs fgsdfg dsf hgsdjffjksfjsgfsd fFGSDJFKgdSfjf sfds dshgsdghdfghf",
-						"dsadadsad"));
+	}
 
+	/**
+	 * This class handles the json download and parsing functionality. It
+	 * provide this functionality in asynchronous manner so that activity should
+	 * not block.
+	 * 
+	 */
+	public class DownloaderTask extends AsyncTask<String, Void, Boolean> {
+
+		private ArrayList<FeedElementInfo> mLstFeed;
+		private String mJsonTitle = null;
+
+		public DownloaderTask(ArrayList<FeedElementInfo> lstFeed) {
+			this.mLstFeed = lstFeed;
+		}
+
+		/**
+		 * This method is called asynchronously to download and parse the json
+		 * method. It initializes the lstFeed ArrayList.
+		 * 
+		 * @param String
+		 *            [] an String URL giving the base location of the json file
+		 * @return String returns the title of the json massege in case of
+		 *         successful parsing.
+		 */
+		@Override
+		protected Boolean doInBackground(String... params) {
+
+			Log.d(LOGCAT_TAG, "Inside <doInBackground> downloading JSON");
+
+			// android.os.Debug.waitForDebugger();
+			HttpClient httpCLient = new DefaultHttpClient();
+			HttpGet httpget = new HttpGet(params[0]);
+			ResponseHandler<String> responseHndlr = new BasicResponseHandler();
+
+			String responseBody = null;
+
+			try {
+				responseBody = httpCLient.execute(httpget, responseHndlr);
+
+				JsonParser jParser = new JsonParser();
+				JsonObject jArray = (JsonObject) jParser.parse(responseBody);
+				JsonArray jRows = jArray.getAsJsonArray("rows");
+				mJsonTitle = jArray.get("title").isJsonNull() ? null : jArray
+						.get("title").getAsString();
+				mLstFeed.clear();
+
+				for (JsonElement jElement : jRows) {
+
+					String title = jElement.getAsJsonObject().get("title")
+							.isJsonNull() ? BLANK_STRING : jElement
+							.getAsJsonObject().get("title").getAsString();
+					String desc = jElement.getAsJsonObject().get("description")
+							.isJsonNull() ? BLANK_STRING : jElement
+							.getAsJsonObject().get("description").getAsString();
+					String url = jElement.getAsJsonObject().get("imageHref")
+							.isJsonNull() ? BLANK_STRING : jElement
+							.getAsJsonObject().get("imageHref").getAsString();
+
+					mLstFeed.add(new FeedElementInfo(title, desc, url));
+				}
+				Log.d(LOGCAT_TAG, "Exiting <doInBackground>downloading JSON");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return false;
+
+			}
+
+			return true;
+		}
+
+		/**
+		 * This method is called on Activity main thread. It sets the ActionBar
+		 * title and notify adapter for ArrayList change
+		 * 
+		 * @param String
+		 *            an String representing ActionBar title.
+		 * @return String returns the title of the json massege in case of
+		 *         successful parsing.
+		 */
+		@Override
+		protected void onPostExecute(Boolean result) {
+			if (result) {
+				getActionBar().setTitle(mJsonTitle);
+				refreshAdapter();
+			} else
+				Toast.makeText(getBaseContext(),
+						getResources().getString(R.string.json_error),
+						Toast.LENGTH_LONG).show();
+
+		}
+
+		/*
+		 * Notify the Adapter for data change in ArrayList.
+		 */
+		public void refreshAdapter() {
+			mAdapter.notifyDataSetChanged();
+		}
 	}
 
 	public class FeedElementInfo {

@@ -3,29 +3,36 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
+    <ImageView
+        android:id="@+id/img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_below="@+id/title"
+        android:layout_centerVertical="true"
+        android:layout_margin="6dp"
+        android:contentDescription="@string/img_desc" />
+
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/img"
         android:textColor="#0000FF"
-        android:textSize="35sp" />
+        android:textSize="30sp" />
 
     <TextView
         android:id="@+id/desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/title"
-        android:textSize="20sp" />
-
-    <ImageView
-        android:id="@+id/img"
-        android:layout_width="80dp"
-        android:layout_height="fill_parent"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/title"
-        android:contentDescription="TODO" />
+        android:layout_toLeftOf="@id/img"
+        android:textSize="25sp" />
 
 </RelativeLayout>

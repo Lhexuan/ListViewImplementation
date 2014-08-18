@@ -3,6 +3,8 @@
 
     <string name="app_name">ListViewImpl</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="dropbox_url">https://www.dropbox.com/s/g41ldl6t0afw9dv/facts.json?dl=1</string>
+    <string name="img_desc">Download image</string>
+    <string name="json_error">"A Valid JSON file can not be downloaded.. Please verify the URL or JSON file"</string>
 
 </resources>

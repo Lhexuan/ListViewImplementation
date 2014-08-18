@@ -18,12 +18,22 @@ public class SimpleAdapter extends ArrayAdapter<FeedElementInfo> {
 	ArrayList<FeedElementInfo> mListFeedInfo;
 	Activity mActivityContext;
 
+	// Overloaded constructor
 	public SimpleAdapter(Context context, ArrayList<FeedElementInfo> lstFeedInfo) {
 		super(context, R.layout.list_row_layout, lstFeedInfo);
 		mActivityContext = (Activity) context;
 		mListFeedInfo = lstFeedInfo;
 	}
 
+	/**
+	 * This method called by Android system when android wants to call. We have
+	 * no control on this method.
+	 * <p>
+	 * This method always returns immediately whether to draw image from map or
+	 * queue the request that will be fulfilled later.
+	 * 
+	 * * @return View
+	 */
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView = convertView;
