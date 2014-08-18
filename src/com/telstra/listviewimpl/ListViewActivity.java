@@ -11,6 +11,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.ListView;
@@ -21,22 +22,38 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class ListViewActivity extends Activity {
-	static final String LOGCAT_TAG = "DemoActivity";
+public class ListViewActivity extends Activity implements
+		SwipeRefreshLayout.OnRefreshListener {
+	static final String LOGCAT_TAG = "ListViewActivity";
 	private ArrayList<FeedElementInfo> mListFeed = new ArrayList<FeedElementInfo>();
 	SimpleAdapter mAdapter = null;
 	final static String BLANK_STRING = "";
+	private SwipeRefreshLayout mSwipeLayout;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_list_view);
 
+		// For implementing Swipe to refresh functionality//
+		mSwipeLayout = (SwipeRefreshLayout) findViewById(R.id.container);
+		mSwipeLayout.setOnRefreshListener(this);
+		mSwipeLayout.setColorScheme(android.R.color.holo_blue_bright,
+				android.R.color.holo_green_light,
+				android.R.color.holo_orange_light,
+				android.R.color.holo_red_light);
+
 		getFeedInfoList(this.getResources().getString(R.string.dropbox_url));
 
 		ListView lstView = (ListView) findViewById(R.id.lstView);
 		mAdapter = new SimpleAdapter(this, mListFeed);
 		lstView.setAdapter(mAdapter);
+	}
+
+	// Callback for swipe down the screen
+	@Override
+	public void onRefresh() {
+		getFeedInfoList(this.getResources().getString(R.string.dropbox_url));
 	}
 
 	@Override
@@ -58,8 +75,8 @@ public class ListViewActivity extends Activity {
 	 */
 	public void getFeedInfoList(String url) {
 
+		mSwipeLayout.setRefreshing(true);
 		new DownloaderTask(mListFeed).execute(url);
-
 	}
 
 	/**
@@ -150,6 +167,7 @@ public class ListViewActivity extends Activity {
 				Toast.makeText(getBaseContext(),
 						getResources().getString(R.string.json_error),
 						Toast.LENGTH_LONG).show();
+			mSwipeLayout.setRefreshing(false);
 
 		}
 
@@ -158,6 +176,7 @@ public class ListViewActivity extends Activity {
 		 */
 		public void refreshAdapter() {
 			mAdapter.notifyDataSetChanged();
+			mSwipeLayout.setRefreshing(false);
 		}
 	}
 
