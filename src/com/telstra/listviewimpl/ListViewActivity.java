@@ -1,6 +1,7 @@
 package com.telstra.listviewimpl;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -27,10 +28,12 @@ import com.google.gson.JsonParser;
 
 public class ListViewActivity extends Activity implements
 		SwipeRefreshLayout.OnRefreshListener {
-	static final String LOGCAT_TAG = "ListViewActivity";
-	private ArrayList<FeedElementInfo> mListFeed = new ArrayList<FeedElementInfo>();
-	SimpleAdapter mAdapter = null;
+	final String LOGCAT_TAG = "ListViewActivity";
 	final static String BLANK_STRING = "";
+
+	private List<FeedElementInfo> mListFeed = new ArrayList<FeedElementInfo>();
+	SimpleAdapter mAdapter = null;
+
 	private SwipeRefreshLayout mSwipeLayout;
 
 	@Override
@@ -113,12 +116,12 @@ public class ListViewActivity extends Activity implements
 	 * not block.
 	 * 
 	 */
-	public class DownloaderTask extends AsyncTask<String, Void, Boolean> {
+	private class DownloaderTask extends AsyncTask<String, Void, Boolean> {
 
-		private ArrayList<FeedElementInfo> mLstFeed;
+		private List<FeedElementInfo> mLstFeed;
 		private String mJsonTitle = null;
 
-		public DownloaderTask(ArrayList<FeedElementInfo> lstFeed) {
+		public DownloaderTask(List<FeedElementInfo> lstFeed) {
 			this.mLstFeed = lstFeed;
 		}
 
@@ -169,6 +172,8 @@ public class ListViewActivity extends Activity implements
 				}
 				Log.d(LOGCAT_TAG, "Exiting <doInBackground>downloading JSON");
 			} catch (Exception ex) {
+				Log.e(LOGCAT_TAG,
+						"Either Json file is not valid or not exist on server.");
 				ex.printStackTrace();
 				return false;
 

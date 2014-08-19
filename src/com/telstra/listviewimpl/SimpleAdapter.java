@@ -1,6 +1,6 @@
 package com.telstra.listviewimpl;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,11 +15,11 @@ import com.telstra.listviewimpl.ListViewActivity.FeedElementInfo;
 
 public class SimpleAdapter extends ArrayAdapter<FeedElementInfo> {
 
-	ArrayList<FeedElementInfo> mListFeedInfo;
+	List<FeedElementInfo> mListFeedInfo;
 	Activity mActivityContext;
 	ImageDownloadManager mImgDwnldMgr = ImageDownloadManager.getInstance();
 
-	public SimpleAdapter(Context context, ArrayList<FeedElementInfo> lstFeedInfo) {
+	public SimpleAdapter(Context context, List<FeedElementInfo> lstFeedInfo) {
 		super(context, R.layout.list_row_layout, lstFeedInfo);
 		mActivityContext = (Activity) context;
 		mListFeedInfo = lstFeedInfo;
@@ -27,7 +27,7 @@ public class SimpleAdapter extends ArrayAdapter<FeedElementInfo> {
 
 	// Implemented Holder pattern to enhance the performance as inflatation and
 	// using findViewById are expensive calls.
-	public class ViewHolder {
+	private class ViewHolder {
 		TextView tvTitle;
 		TextView tvDesc;
 		ImageView ivIcon;

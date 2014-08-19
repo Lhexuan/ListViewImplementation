@@ -14,8 +14,13 @@ import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 
+import com.telstra.utils.Utils;
+
 public class ImageDownloadManager {
 	private final static String LOG_TAG = "ImageDownLoadManager";
+
+	// This object holds the memory area for memory caching. It is thread safe
+	// so no need to implement synchronization here.
 	private LruCache<String, Bitmap> mMemorycache;
 
 	private ImageDownloadManager() {
@@ -52,12 +57,17 @@ public class ImageDownloadManager {
 		}
 	}
 
-	class ImageDownloader extends AsyncTask<String, Void, Bitmap> {
+	/*
+	 * This class provide background image download and add it to memory and
+	 * persistent cache for future use. It also scale the image.
+	 */
+
+	private class ImageDownloader extends AsyncTask<String, Void, Bitmap> {
 		private final WeakReference<ImageView> mImageViewReference;
 		private String mImageUrl = null;
 		private Context mContext = null;
 
-		public ImageDownloader(ImageView imageView) {
+		private ImageDownloader(ImageView imageView) {
 			// Use a WeakReference to ensure the ImageView can be garbage
 			// collected
 			this.mContext = imageView.getContext();
@@ -99,8 +109,14 @@ public class ImageDownloadManager {
 				if (bitmap == null) {
 					URLConnection openConnection = new URL(url)
 							.openConnection();
+					openConnection.setConnectTimeout(20000);
+					openConnection.setReadTimeout(20000);
 					bitmap = BitmapFactory.decodeStream(openConnection
 							.getInputStream());
+
+					if (bitmap != null) {
+						bitmap = Utils.scaleImage(bitmap, 200, 200);
+					}
 				}
 				if (bitmap != null) {
 					addBitmapToMemoryCache(url, bitmap);
@@ -110,7 +126,9 @@ public class ImageDownloadManager {
 				return bitmap;
 
 			} catch (Exception ex) {
-				ex.printStackTrace();
+				Log.w(LOG_TAG,
+						"Network stream is not correct. there is something wrong with URL or network.");
+				// ex.printStackTrace();
 				return null;
 			}
 		}
@@ -122,13 +140,16 @@ public class ImageDownloadManager {
 				out = mContext.openFileOutput(f, Context.MODE_PRIVATE);
 				bmp.compress(Bitmap.CompressFormat.PNG, 80, out);
 			} catch (Exception e) {
-				e.printStackTrace();
+				Log.d(LOG_TAG,
+						"File <"
+								+ f
+								+ "> can not be opened in write mode in internal storage");
 			} finally {
 				try {
 					if (out != null)
 						out.close();
 				} catch (Exception ex) {
-					ex.printStackTrace();
+					Log.w(LOG_TAG, "FileOutputStream is not available");
 				}
 			}
 		}
