@@ -6,5 +6,6 @@
     <string name="dropbox_url">https://www.dropbox.com/s/g41ldl6t0afw9dv/facts.json?dl=1</string>
     <string name="img_desc">Downloaded image</string>
     <string name="json_error">"A Valid JSON file can not be downloaded.. Please verify the URL or JSON file"</string>
+    <string name="no_network_warning">Please check your network connection and do refresh by swipe down..</string>
 
 </resources>

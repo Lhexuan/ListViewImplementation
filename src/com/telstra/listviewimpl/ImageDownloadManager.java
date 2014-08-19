@@ -39,7 +39,7 @@ public class ImageDownloadManager {
 	}
 
 	public void drawImage(String imageUrl, ImageView iv) {
-		if (imageUrl == null || imageUrl.isEmpty()) {
+		if (imageUrl == null) {
 			iv.setVisibility(ImageView.INVISIBLE);
 		} else {
 			if (getBitmapFromMemoryCache(imageUrl) != null)

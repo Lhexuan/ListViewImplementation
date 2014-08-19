@@ -9,6 +9,9 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -75,8 +78,33 @@ public class ListViewActivity extends Activity implements
 	 */
 	public void getFeedInfoList(String url) {
 
-		mSwipeLayout.setRefreshing(true);
-		new DownloaderTask(mListFeed).execute(url);
+		if (ifNetworkAvailable()) {
+			mSwipeLayout.setRefreshing(true);
+			new DownloaderTask(mListFeed).execute(url);
+		} else
+			mSwipeLayout.setRefreshing(false);
+
+	}
+
+	private Boolean ifNetworkAvailable() {
+		final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+		if (activeNetwork != null)
+			if (!activeNetwork.isConnected()) {
+				Toast.makeText(
+						getBaseContext(),
+						this.getResources().getString(
+								R.string.no_network_warning),
+						Toast.LENGTH_SHORT).show();
+				return false;
+			} else
+				return true;
+		else {
+			Toast.makeText(getBaseContext(),
+					this.getResources().getString(R.string.no_network_warning),
+					Toast.LENGTH_SHORT).show();
+			return false;
+		}
 	}
 
 	/**
