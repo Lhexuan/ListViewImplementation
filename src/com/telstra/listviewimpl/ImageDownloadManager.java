@@ -1,9 +1,12 @@
 package com.telstra.listviewimpl;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLConnection;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -52,10 +55,12 @@ public class ImageDownloadManager {
 	class ImageDownloader extends AsyncTask<String, Void, Bitmap> {
 		private final WeakReference<ImageView> mImageViewReference;
 		private String mImageUrl = null;
+		private Context mContext = null;
 
 		public ImageDownloader(ImageView imageView) {
 			// Use a WeakReference to ensure the ImageView can be garbage
 			// collected
+			this.mContext = imageView.getContext();
 			mImageViewReference = new WeakReference<ImageView>(imageView);
 		}
 
@@ -82,19 +87,50 @@ public class ImageDownloadManager {
 			Bitmap bitmap = null;
 			try {
 				Log.d(LOG_TAG, "Inside bitBitmap().");
+				String filename = String.valueOf(url.hashCode());
+				try {
+					bitmap = BitmapFactory.decodeFileDescriptor(mContext
+							.openFileInput(filename).getFD());
+				} catch (FileNotFoundException ex) {
+					Log.v(LOG_TAG, "File <" + filename
+							+ "> not found in storage cache");
+				}
 
-				URLConnection openConnection = new URL(url).openConnection();
-				bitmap = BitmapFactory.decodeStream(openConnection
-						.getInputStream());
+				if (bitmap == null) {
+					URLConnection openConnection = new URL(url)
+							.openConnection();
+					bitmap = BitmapFactory.decodeStream(openConnection
+							.getInputStream());
+				}
 				if (bitmap != null) {
 					addBitmapToMemoryCache(url, bitmap);
+
+					writeFile(bitmap, filename);
+				}
+				return bitmap;
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return null;
+			}
+		}
+
+		private void writeFile(Bitmap bmp, String f) {
+			FileOutputStream out = null;
+
+			try {
+				out = mContext.openFileOutput(f, Context.MODE_PRIVATE);
+				bmp.compress(Bitmap.CompressFormat.PNG, 80, out);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (out != null)
+						out.close();
+				} catch (Exception ex) {
+					ex.printStackTrace();
 				}
 			}
-
-			catch (Exception ex) {
-				ex.printStackTrace();
-			}
-			return bitmap;
 		}
 	}
 }
